@@ -61,6 +61,7 @@
   th{background:#1d2960; color:var(--ink);}
   td{color:var(--dim);} td[contenteditable]{color:var(--ink); background:rgba(255,255,255,.03); min-width:56px;}
   td[contenteditable]:focus{outline:2px solid var(--accent);}
+  td.bad{background:rgba(255,90,90,.20) !important; outline:2px solid #ff7a7a;}
   ul.rules{margin:8px 0 0; padding-left:20px; color:var(--dim); line-height:1.65; font-size:15px;}
   ul.rules b{color:var(--ink);}
   footer{max-width:1180px; margin:0 auto; padding:0 20px 34px; color:#7785bb; font-size:13px;}
@@ -753,20 +754,31 @@ window.__booted = true;
     cells().forEach(function(td, i){ if(saved[i]) td.textContent = saved[i]; });
   }catch(e){}
   // autosave draft on this device
-  table.addEventListener('input', function(){
+  table.addEventListener('input', function(e){
+    if(e.target && e.target.classList) e.target.classList.remove('bad');
     try{ localStorage.setItem(DRAFT_KEY, JSON.stringify(cells().map(function(td){ return td.textContent.trim(); }))); }catch(e){}
   });
   function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function posInt(s){ return /^\d+$/.test(s) && parseInt(s, 10) > 0; }
   function collectRows(){
-    var rows = [], trs = table.querySelectorAll('tr');
+    // A started row must be COMPLETE: version + what changed filled in, and
+    // Flight 1/2/3 + Best all whole step counts bigger than 0.
+    // Bad cells get highlighted; problems are reported back for the status line.
+    var rows = [], problems = [], trs = table.querySelectorAll('tr');
     for(var r=1; r<trs.length; r++){
       var tds = trs[r].querySelectorAll('td');
-      var row = { version: tds[0].textContent.trim(), change: tds[1].textContent.trim(),
-                  f1: tds[2].textContent.trim(), f2: tds[3].textContent.trim(),
-                  f3: tds[4].textContent.trim(), best: tds[5].textContent.trim() };
-      if(row.f1 || row.f2 || row.f3 || row.best) rows.push(row);
+      var vals = [0,1,2,3,4,5].map(function(i){ return tds[i].textContent.trim(); });
+      var started = vals.some(function(v){ return v !== ''; });
+      if(!started) continue;
+      var label = vals[0] || ('row ' + r);
+      var missingText = false, badNum = false;
+      [0,1].forEach(function(i){ if(!vals[i]){ tds[i].classList.add('bad'); missingText = true; } });
+      [2,3,4,5].forEach(function(i){ if(!posInt(vals[i])){ tds[i].classList.add('bad'); badNum = true; } });
+      if(missingText) problems.push('version ' + label + ' — fill in every box of the row');
+      if(badNum) problems.push('version ' + label + ' — step counts must be whole numbers bigger than 0 (no zero, no decimals)');
+      rows.push({ version: vals[0], change: vals[1], f1: vals[2], f2: vals[3], f3: vals[4], best: vals[5] });
     }
-    return rows;
+    return { rows: rows, problems: problems };
   }
   var CEL_LINES = [
     'Flight data received loud and clear. Fly, measure, log — that is how real pilots build skill.',
@@ -800,8 +812,11 @@ window.__booted = true;
   var status = document.getElementById('submitStatus');
   document.getElementById('submitLog').addEventListener('click', function(){
     var code = document.getElementById('pilotCode').value.trim();
-    var rows = collectRows();
-    if(!rows.length){ status.textContent = 'Fill in at least one flight first, pilot.'; return; }
+    cells().forEach(function(td){ td.classList.remove('bad'); });
+    var res = collectRows();
+    if(!res.rows.length){ status.textContent = 'Fill in at least one flight first, pilot.'; return; }
+    if(res.problems.length){ status.textContent = '⚠️ Hold on, pilot — ' + res.problems[0] + (res.problems.length > 1 ? ' (+' + (res.problems.length - 1) + ' more)' : '') + '. Fix the highlighted boxes, then transmit again.'; return; }
+    var rows = res.rows;
     if(!code){ status.textContent = 'Enter your pilot code first.'; return; }
     status.textContent = 'Transmitting…';
     fetch('/api/logs', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ code: code, rows: rows }) })

@@ -25,18 +25,19 @@ export async function onRequestPost({ request, env }) {
     return Response.json({ ok: false, error: 'wrong pilot code' }, { status: 403 });
   }
   const rows = Array.isArray(body.rows) ? body.rows.slice(0, 20) : [];
-  const clean = (v, n) => String(v == null ? '' : v).slice(0, n);
+  const clean = (v, n) => String(v == null ? '' : v).trim().slice(0, n);
+  const posInt = v => { const s = String(v == null ? '' : v).trim(); return /^\d+$/.test(s) && parseInt(s, 10) > 0; };
   const stmt = env.DB.prepare(
     'INSERT INTO flight_logs (version, change_desc, f1, f2, f3, best) VALUES (?1, ?2, ?3, ?4, ?5, ?6)'
   );
-  const batch = rows
-    .filter(r => r && (r.f1 || r.f2 || r.f3 || r.best))
-    .map(r => stmt.bind(
+  const started = rows.filter(r => r && (r.version || r.change || r.f1 || r.f2 || r.f3 || r.best));
+  const allValid = started.every(r => clean(r.version, 8) && clean(r.change, 120) && posInt(r.f1) && posInt(r.f2) && posInt(r.f3) && posInt(r.best));
+  const batch = (started.length && allValid) ? started.map(r => stmt.bind(
       clean(r.version, 8), clean(r.change, 120),
       clean(r.f1, 16), clean(r.f2, 16), clean(r.f3, 16), clean(r.best, 16)
-    ));
+    )) : [];
   if (!batch.length) {
-    return Response.json({ ok: false, error: 'no rows' }, { status: 400 });
+    return Response.json({ ok: false, error: started.length ? 'incomplete or invalid rows' : 'no rows' }, { status: 400 });
   }
   try {
     await env.DB.batch(batch);
