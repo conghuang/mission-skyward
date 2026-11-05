@@ -16,7 +16,7 @@ Time budget: ~2 hours a week, at your pace. Everything happens indoors — rainy
 
 **TASK 1 — THE PAPER PLANE LAB**
 Every pilot starts with the basics. Yours is made of paper.
-1. Build a plane, any design you like. Fly it 3 times. Measure each flight and write the distances down — that's your baseline.
+1. Build a plane, any design you like. Fly it 3 times. Measure each flight in steps — walk from your start line to where the plane stopped and count your steps (no ruler needed). Write the step counts down — that's your baseline.
 2. Now change ONE thing: bigger wings, a paperclip on the nose, a different fold — your pick. Fly 3 times, log the distances.
 3. Change one more thing. Fly. Log.
 
@@ -28,7 +28,7 @@ Real drone pilots in the US carry this certificate. TRUST is the FAA's free onli
 **MISSION COMPLETE WHEN:**
 You can explain, in your own words, how a drone moves forward and turns — using the four forces (**thrust, lift, drag, weight**) and the three moves (**pitch, roll, yaw**). Bonus points if your paper-plane data shows up in the explanation.
 
-Report back to Mission Control with your flight log and your champion plane's best distance.
+Report back to Mission Control with your flight log and your champion plane's best distance, in steps.
 
 Good flying.
 — Mission Control
