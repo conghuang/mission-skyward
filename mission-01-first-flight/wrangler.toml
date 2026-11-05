@@ -1,0 +1,10 @@
+name = "skyward-mission1"
+pages_build_output_dir = "public"
+compatibility_date = "2026-11-01"
+
+# After creating the D1 database (dashboard or `wrangler d1 create skyward`),
+# paste its id below — or bind the database in the Pages project settings instead.
+[[d1_databases]]
+binding = "DB"
+database_name = "skyward"
+database_id = "REPLACE-AFTER-D1-CREATE"

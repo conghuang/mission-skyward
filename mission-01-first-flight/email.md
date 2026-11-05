@@ -1,0 +1,34 @@
+# Mission 1 任务邮件存档
+
+- 收件人：mail.klaushuang@gmail.com
+- 密送：15799976@qq.com
+- 标题：[Mission Control] Mission 1 — First Flight: Why Things Fly
+- 状态：正文已于 2026-11-05 经爸爸批准；待站点部署完成后，在正文中补入指南网址与飞行员口令再发送。发送后把最终版回存到本文件。
+
+---
+
+Klaus —
+
+Mission Control here. Your I'M IN is logged and confirmed. Welcome aboard, pilot. 🚀
+
+**MISSION 1 — FIRST FLIGHT: WHY THINGS FLY**
+Time budget: ~2 hours a week, at your pace. Everything happens indoors — rainy-week compatible.
+
+**TASK 1 — THE PAPER PLANE LAB**
+Every pilot starts with the basics. Yours is made of paper.
+1. Build a plane, any design you like. Fly it 3 times. Measure each flight and write the distances down — that's your baseline.
+2. Now change ONE thing: bigger wings, a paperclip on the nose, a different fold — your pick. Fly 3 times, log the distances.
+3. Change one more thing. Fly. Log.
+
+The rule of the lab: **one variable at a time.** Change two things at once and you'll never know which one did the work. Your flight log is your data — treat it like a scientist, because on this program, that's the job.
+
+**TASK 2 — GET CERTIFIED: FAA TRUST**
+Real drone pilots in the US carry this certificate. TRUST is the FAA's free online safety course for recreational flyers — about 30–40 minutes, with quizzes as you go, and you can't fail it: you just keep going until you pass. Dad will sit this one with you. When you finish, save the certificate — it's your first official document as a pilot.
+
+**MISSION COMPLETE WHEN:**
+You can explain, in your own words, how a drone moves forward and turns — using the four forces (**thrust, lift, drag, weight**) and the three moves (**pitch, roll, yaw**). Bonus points if your paper-plane data shows up in the explanation.
+
+Report back to Mission Control with your flight log and your champion plane's best distance.
+
+Good flying.
+— Mission Control
