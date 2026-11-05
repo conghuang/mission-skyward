@@ -477,6 +477,8 @@ function makeMiniStage(containerId){
   s2.position.set(3.5, 5, 4); sc.add(s2);
   const rim2 = new THREE.DirectionalLight(0x88aaff, 0.5);
   rim2.position.set(-4, 2, -3); sc.add(rim2);
+  const up2 = new THREE.DirectionalLight(0xbfd0ff, 0.55);
+  up2.position.set(0.5, -5, 2.5); sc.add(up2);
   const cam = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
   const g = new THREE.Group();
   g.rotation.z = Math.PI/2; // finished plane stands upright, same as the main stage from Step 4 on
@@ -696,7 +698,7 @@ function frame(now){
     const s2 = 1 + 0.25 * Math.sin(now * 0.006);
     exp2.dot.scale.set(s2, s2, s2);
   }
-  exp2.stage.setView(-0.6 + Math.sin(now * 0.00035 + 2) * 0.28, 1.02, 5.6);
+  exp2.stage.setView(-0.6 + Math.sin(now * 0.00035 + 2) * 0.28, 2.35, 5.6);
   exp2.stage.renderer.render(exp2.stage.scene, exp2.stage.camera);
 }
 
