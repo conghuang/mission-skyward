@@ -24,6 +24,9 @@
          background:radial-gradient(700px 420px at 50% 38%, #24327a 0%, #101736 70%); cursor:grab; touch-action:none;}
   #scene:active{cursor:grabbing;}
   #scene canvas{display:block;}
+  .ministage{position:relative; width:100%; aspect-ratio:16/9; border-radius:10px; overflow:hidden;
+         background:radial-gradient(520px 300px at 50% 38%, #24327a 0%, #101736 70%); margin:10px 0 12px;}
+  .ministage canvas{display:block;}
   #fallback{display:none; position:absolute; inset:0; padding:24px; color:var(--dim); font-size:15px; line-height:1.6;}
   .hint{position:absolute; right:12px; bottom:10px; font-size:12px; color:#8fa0d8; background:rgba(10,14,34,.55);
         padding:4px 10px; border-radius:999px; pointer-events:none;}
@@ -94,6 +97,7 @@
     <section class="card">
       <h3><span class="tag">EXPERIMENT 1</span>✈️ Wing Size — the Fold-Line Trick</h3>
       <p>When you fold the wings (Step 5), <b>where the fold line goes</b> decides how big the wings are. Fold line hugging the body → <b>big wings</b>. Fold line far from the body → small wings, chunky body. Slide it and watch the finished plane change:</p>
+      <div class="ministage" id="expScene1"></div>
       <div id="wingVal">Wing size: CLASSIC</div>
       <input type="range" id="wingRange" min="5" max="40" value="14">
       <div class="rangeLabels"><span>◀ BIG wings</span><span>small wings ▶</span></div>
@@ -104,12 +108,13 @@
     <section class="card">
       <h3><span class="tag">EXPERIMENT 2</span>📎 Paperclip &amp; the Balance Point</h3>
       <p>Every plane balances on one point — its <b>center of gravity</b> (the glowing orange dot). A paperclip moves it. Pick a spot and see where the dot goes:</p>
+      <div class="ministage" id="expScene2"></div>
       <div class="seg">
         <button data-clip="nose">Clip on the NOSE</button>
         <button data-clip="mid">Clip in the MIDDLE</button>
         <button data-clip="tail">Clip on the TAIL</button>
       </div>
-      <p class="caption" id="cgCaption">Tap a button — the plane above jumps to its finished form with the clip on.</p>
+      <p class="caption" id="cgCaption">Tap a button and watch the paperclip — and the glowing balance point — glide to their new spots.</p>
       <p>Then do it for real and watch what each one does in the air. Prediction first, flight second — that's the scientific method.</p>
     </section>
   </div>
@@ -459,6 +464,85 @@ const CLIPS = {
     cap: 'Balance point slides BACK. The nose wants to pitch up, the plane stalls, wobbles and may loop. Terrible for distance… very fun to watch. Fly it anyway — a stall is data too.' }
 };
 
+/* ---------- experiment mini stages (each experiment gets its own animated 3D view) ---------- */
+const FULL_FOLDS = { crease:1, cornerL:1, cornerR:1, edgeL:1, edgeR:1, half:1, wingA:1, wingB:1, letA:1, letB:1 };
+
+function makeMiniStage(containerId){
+  const box = document.getElementById(containerId);
+  const r = new THREE.WebGLRenderer({ antialias:true, alpha:true });
+  r.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  box.appendChild(r.domElement);
+  const sc = new THREE.Scene();
+  sc.add(new THREE.HemisphereLight(0xcfe0ff, 0x2a2118, 1.05));
+  const s2 = new THREE.DirectionalLight(0xffffff, 1.6);
+  s2.position.set(3.5, 5, 4); sc.add(s2);
+  const rim2 = new THREE.DirectionalLight(0x88aaff, 0.5);
+  rim2.position.set(-4, 2, -3); sc.add(rim2);
+  const cam = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
+  const g = new THREE.Group();
+  g.rotation.z = Math.PI/2; // finished plane stands upright, same as the main stage from Step 4 on
+  sc.add(g);
+  const geo2 = new THREE.BufferGeometry();
+  const pa = new THREE.BufferAttribute(new Float32Array(C.NV*3), 3);
+  geo2.setAttribute('position', pa);
+  geo2.setAttribute('uv', geo.getAttribute('uv'));
+  geo2.setIndex(C.index);
+  g.add(new THREE.Mesh(geo2, paper.material));
+  const bg2 = new THREE.BufferGeometry();
+  const ba = new THREE.BufferAttribute(new Float32Array(C.border.length*3), 3);
+  bg2.setAttribute('position', ba);
+  g.add(new THREE.LineLoop(bg2, borderLine.material));
+  function draw(prog, w){
+    const out = C.computeAll(prog, w);
+    const p = out.pos;
+    for(let i=0; i<C.NV; i++) pa.setXYZ(i, p[i*3], p[i*3+1], p[i*3+2]);
+    pa.needsUpdate = true;
+    geo2.computeVertexNormals();
+    for(let j=0; j<C.border.length; j++){
+      const vi = C.border[j];
+      ba.setXYZ(j, p[vi*3], p[vi*3+1], p[vi*3+2]);
+    }
+    ba.needsUpdate = true;
+  }
+  function resize(){
+    const w2 = box.clientWidth, h2 = box.clientHeight;
+    if(!w2 || !h2) return;
+    r.setSize(w2, h2);
+    cam.aspect = w2/h2; cam.updateProjectionMatrix();
+  }
+  function setView(theta, phi, radius){
+    cam.position.set(radius * Math.sin(phi) * Math.sin(theta),
+                     radius * Math.cos(phi),
+                     radius * Math.sin(phi) * Math.cos(theta));
+    cam.lookAt(0, 0.05, 0);
+  }
+  return { box:box, renderer:r, scene:sc, camera:cam, group:g, draw:draw, resize:resize, setView:setView };
+}
+
+function makeClipMesh(){
+  const grp = new THREE.Group();
+  const a = new THREE.Mesh(new THREE.TorusGeometry(0.085, 0.016, 10, 28), metal);
+  const b = new THREE.Mesh(new THREE.TorusGeometry(0.058, 0.016, 10, 28), metal);
+  b.position.x = 0.035;
+  grp.add(a, b);
+  grp.rotation.x = Math.PI/2;
+  grp.scale.set(1, 1.9, 1);
+  return grp;
+}
+
+const exp1 = { stage: makeMiniStage('expScene1'), wCur: 0.14, wTarget: 0.14 };
+const exp2 = { stage: makeMiniStage('expScene2'), clip: makeClipMesh(),
+               dot: new THREE.Mesh(new THREE.SphereGeometry(0.045, 18, 14),
+                     new THREE.MeshBasicMaterial({ color: 0xff7b1c })),
+               clipTarget: new THREE.Vector3(0.03, 0.045, 0.92),
+               cgTarget: new THREE.Vector3(0.03, 0.05, 0.55) };
+exp2.clip.visible = false;
+exp2.dot.visible = false;
+exp2.clip.position.set(0.03, 0.045, 0);
+exp2.dot.position.set(0.03, 0.05, 0.12);
+exp2.stage.group.add(exp2.clip, exp2.dot);
+window.addEventListener('resize', () => { exp1.stage.resize(); exp2.stage.resize(); });
+
 /* ---------- state / animation ---------- */
 let step = 0;
 let wingW = 0.14;
@@ -559,7 +643,7 @@ function applyWing(){
   const t = wingText();
   wingVal.textContent = 'Wing size: ' + t[0];
   wingCaption.textContent = t[1];
-  if(step < 5) goTo(5, true); else render();
+  exp1.wTarget = wingW;
 }
 wingRange.addEventListener('input', applyWing);
 
@@ -569,9 +653,12 @@ document.querySelectorAll('[data-clip]').forEach(btn => {
     btn.classList.add('on');
     currentClip = CLIPS[btn.dataset.clip];
     document.getElementById('cgCaption').textContent = currentClip.cap;
-    if(step < 6) goTo(6, true);
     clipGroup.position.set(0.03, 0.045, currentClip.z);
     cgDot.position.set(0.03, 0.05, currentClip.cg);
+    exp2.clipTarget.set(0.03, 0.045, currentClip.z);
+    exp2.cgTarget.set(0.03, 0.05, currentClip.cg);
+    exp2.clip.visible = true;
+    exp2.dot.visible = true;
     refreshUI();
   });
 });
@@ -596,6 +683,22 @@ function frame(now){
   camera.lookAt(0, 0.05, 0);
   if(cgDot.visible){ const s = 1 + 0.25 * Math.sin(now * 0.006); cgDot.scale.set(s, s, s); }
   renderer.render(scene, camera);
+  // Experiment 1: wing size morphs smoothly toward the slider value.
+  if(Math.abs(exp1.wCur - exp1.wTarget) > 0.0004){
+    exp1.wCur += (exp1.wTarget - exp1.wCur) * 0.13;
+    exp1.stage.draw(FULL_FOLDS, exp1.wCur);
+  }
+  exp1.stage.setView(0.7 + Math.sin(now * 0.00035) * 0.28, 1.02, 5.6);
+  exp1.stage.renderer.render(exp1.stage.scene, exp1.stage.camera);
+  // Experiment 2: paperclip and balance point glide to their targets.
+  if(exp2.clip.visible){
+    exp2.clip.position.lerp(exp2.clipTarget, 0.12);
+    exp2.dot.position.lerp(exp2.cgTarget, 0.12);
+    const s2 = 1 + 0.25 * Math.sin(now * 0.006);
+    exp2.dot.scale.set(s2, s2, s2);
+  }
+  exp2.stage.setView(-0.6 + Math.sin(now * 0.00035 + 2) * 0.28, 1.02, 5.6);
+  exp2.stage.renderer.render(exp2.stage.scene, exp2.stage.camera);
 }
 
 resize();
@@ -604,6 +707,9 @@ applyWing.__skip = true;
 wingCaption.textContent = wingText()[1];
 refreshUI();
 render();
+exp1.stage.resize(); exp2.stage.resize();
+exp1.stage.draw(FULL_FOLDS, exp1.wCur);
+exp2.stage.draw(FULL_FOLDS, 0.14);
 requestAnimationFrame(frame);
 window.__booted = true;
 </script>
