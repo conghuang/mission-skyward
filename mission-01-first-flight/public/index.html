@@ -64,6 +64,21 @@
   ul.rules{margin:8px 0 0; padding-left:20px; color:var(--dim); line-height:1.65; font-size:15px;}
   ul.rules b{color:var(--ink);}
   footer{max-width:1180px; margin:0 auto; padding:0 20px 34px; color:#7785bb; font-size:13px;}
+  #celebrate{position:fixed; inset:0; z-index:60; display:flex; align-items:center; justify-content:center;
+         background:rgba(5,8,22,.84); padding:20px;}
+  #celebrate[hidden]{display:none;}
+  .cel-inner{text-align:center; max-width:560px;}
+  .cel-rocket{font-size:84px; line-height:1; display:inline-block;}
+  .cel-rocket.launch{animation:celLaunch 2.6s ease-out forwards;}
+  @keyframes celLaunch{0%{transform:translateY(34vh) scale(.7) rotate(-8deg); opacity:0;}
+    12%{opacity:1;} 30%{transform:translateY(16vh) scale(1) rotate(3deg);}
+    55%{transform:translateY(-4vh) scale(1.05) rotate(-3deg);}
+    100%{transform:translateY(-30vh) scale(1.1) rotate(2deg); opacity:.95;}}
+  .cel-title{font-size:clamp(28px,5.5vw,44px); font-weight:800; margin:10px 0 6px; animation:celPop .5s ease-out;}
+  .cel-sub{color:var(--ink); font-size:17px; line-height:1.6; animation:celPop .7s ease-out;}
+  .cel-best{color:var(--accent); font-size:20px; font-weight:800; margin-top:10px; animation:celPop .9s ease-out;}
+  @keyframes celPop{from{transform:scale(.7); opacity:0;} to{transform:scale(1); opacity:1;}}
+  #celClose{margin-top:20px;}
   @media print{ body{background:#fff; color:#111;} .card{box-shadow:none; border-color:#ccc; background:#fff;} #scene{display:none;} }
 </style>
 </head>
@@ -155,6 +170,16 @@
 </div>
 
 <footer>MISSION: SKYWARD · Mission 1 — First Flight · The Paper Plane Lab. FAA TRUST is your other Mission 1 task — see the mission email.</footer>
+
+<div id="celebrate" hidden>
+  <div class="cel-inner">
+    <div class="cel-rocket" id="celRocket">🚀</div>
+    <div class="cel-title">LOG RECEIVED, PILOT!</div>
+    <div class="cel-sub" id="celSub"></div>
+    <div class="cel-best" id="celBest"></div>
+    <button id="celClose" class="primary">Keep Flying ✈️</button>
+  </div>
+</div>
 
 <script>
   // If the 3D engine (loaded as a module below) does not boot in time, show the fallback note.
@@ -715,6 +740,7 @@ requestAnimationFrame(frame);
 window.__booted = true;
 </script>
 
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 <script>
 (function(){
   var DRAFT_KEY = 'skyward-log-draft-v1';
@@ -742,6 +768,35 @@ window.__booted = true;
     }
     return rows;
   }
+  var CEL_LINES = [
+    'Flight data received loud and clear. Fly, measure, log — that is how real pilots build skill.',
+    'Your mission data is on the books. Flight programs everywhere run on logs exactly like this one.',
+    'Careful flying AND careful data — Mission Control loves to see it. Keep experimenting, pilot.'
+  ];
+  var celBox = document.getElementById('celebrate');
+  var celTimer = null;
+  function celebrate(saved, rows){
+    var best = null;
+    rows.forEach(function(r){ var v = parseFloat(r.best); if(!isNaN(v) && (best === null || v > best)) best = v; });
+    var n = 0;
+    try{ n = parseInt(localStorage.getItem('skyward-cel-count') || '0', 10) || 0; localStorage.setItem('skyward-cel-count', String(n + 1)); }catch(e){}
+    document.getElementById('celSub').textContent = CEL_LINES[n % CEL_LINES.length];
+    document.getElementById('celBest').textContent = best !== null
+      ? ('🏆 Champion distance: ' + best + ' steps · ' + saved + ' version(s) logged')
+      : (saved + ' version(s) logged.');
+    celBox.hidden = false;
+    var rocket = document.getElementById('celRocket');
+    rocket.classList.remove('launch'); void rocket.offsetWidth; rocket.classList.add('launch');
+    if(window.confetti){
+      var colors = ['#ffb340', '#39d0ff', '#ffffff', '#5ee08a'];
+      window.confetti({ particleCount: 130, spread: 80, origin: { y: 0.7 }, colors: colors });
+      setTimeout(function(){ window.confetti({ particleCount: 80, angle: 60, spread: 60, origin: { x: 0, y: 0.8 }, colors: colors }); }, 250);
+      setTimeout(function(){ window.confetti({ particleCount: 80, angle: 120, spread: 60, origin: { x: 1, y: 0.8 }, colors: colors }); }, 450);
+    }
+    if(celTimer) clearTimeout(celTimer);
+    celTimer = setTimeout(function(){ celBox.hidden = true; }, 12000);
+  }
+  document.getElementById('celClose').addEventListener('click', function(){ celBox.hidden = true; if(celTimer) clearTimeout(celTimer); });
   var status = document.getElementById('submitStatus');
   document.getElementById('submitLog').addEventListener('click', function(){
     var code = document.getElementById('pilotCode').value.trim();
@@ -752,7 +807,7 @@ window.__booted = true;
     fetch('/api/logs', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ code: code, rows: rows }) })
       .then(function(r){ return r.json(); })
       .then(function(j){
-        if(j.ok){ status.textContent = '✅ Received by Mission Control — ' + j.saved + ' version(s) logged.'; loadReceived(); }
+        if(j.ok){ status.textContent = '✅ Received by Mission Control — ' + j.saved + ' version(s) logged.'; loadReceived(); celebrate(j.saved, rows); }
         else { status.textContent = '⚠️ ' + (j.error === 'wrong pilot code' ? 'Wrong pilot code — check your mission email.' : 'Transmission failed: ' + (j.error || 'unknown')); }
       })
       .catch(function(){ status.textContent = '⚠️ Database not reachable from here — your entries stay saved on this device.'; });
