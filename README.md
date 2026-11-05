@@ -26,4 +26,6 @@ Klaus 的无人机与航天学习计划（五阶段，约 12–18 个月，每�
 ## 状态
 
 - 2026-11-04：Klaus 回复 "I'M IN" 正式报名。
-- Mission 1：网页与邮件已备好，待 Cloudflare 部署后发送任务邮件。
+- 2026-11-05：Mission 1 站点已部署并端到端验证通过 —
+  https://mission-skyward.pages.dev（自定义域名 skyward.huangcong.com 待 DNS 生效）；
+  任务邮件待附网址与口令后发送。

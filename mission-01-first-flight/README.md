@@ -10,15 +10,17 @@ Static 3D paper-plane folding guide with a Cloudflare D1-backed flight log.
 - `wrangler.toml` — Pages + D1 binding config
 
 ## One-time setup
-1. Create the D1 database: Cloudflare dashboard → Storage & Databases → D1 → Create,
-   name it `skyward`. Run `schema.sql` in its Console tab.
-2. In Cloudflare Pages, create the project from this GitHub repo with **root directory** set to `mission-01-first-flight` (build output: `public`),
-   and bind the D1 database as `DB` (Pages project → Settings → Bindings),
-   or fill `database_id` in `wrangler.toml`.
-3. In the Pages project → Settings → Environment variables, set
-   `PILOT_CODE` to the pilot code from the mission email. Submitting a log
-   requires it; reading logs is open.
-4. (Optional) Add the custom domain `skyward.huangcong.com` in the Pages project.
+Deployed 2026-11-05 and verified end to end. As built:
+
+- Pages project `mission-skyward` → https://mission-skyward.pages.dev
+- D1 database `skyward-db` (`8072851b-c590-48cf-a409-cf2292ed3e42`), schema applied,
+  bound as `DB` in the project's production and preview configs.
+- `PILOT_CODE` is set in the project's environment variables (never in this repo).
+- Custom domain `skyward.huangcong.com` is attached to the project; it goes
+  live once the DNS CNAME `skyward` → `mission-skyward.pages.dev` exists.
+- Production deploys use the Pages Direct Upload API. The `functions/`
+  directory is the source form; for direct upload the same logic is bundled
+  into a single root `_worker.js` (Advanced Mode), generated at deploy time.
 
 ## Notes
 - The page also keeps a local draft of the log table on the pilot's device
