@@ -26,6 +26,7 @@ Klaus 的无人机与航天学习计划（五阶段，约 12–18 个月，每�
 ## 状态
 
 - 2026-11-04：Klaus 回复 "I'M IN" 正式报名。
-- 2026-11-05：Mission 1 站点已部署并端到端验证通过 —
-  https://mission-skyward.pages.dev（自定义域名 skyward.huangcong.com 待 DNS 生效）；
-  任务邮件待附网址与口令后发送。
+- 2026-11-05：Mission 1 站点已部署并端到端验证通过 — https://skyward.huangcong.com；
+  任务邮件已于当晚发送（附指南网址与飞行日志提交口令）；每晚美东 22:00 自动检查
+  飞行日志提交，首次提交即通知爸爸并策划 Task 2；Task 2（FAA TRUST）陪考已定
+  方案 A：爸爸视频连线远程陪考。
